@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-int min_distance = -1;
+int min_distance = int.MaxValue;
 int times = 0;
 for (int i = 0; i < args.Length; i++)
 {
@@ -9,7 +9,7 @@ for (int i = 0; i < args.Length; i++)
         if (i != j)
         {
             int distance = levenshtein(args[i], args[j]);
-            if (min_distance == -1 || min_distance > distance)
+            if (min_distance > distance)
             {
                 min_distance = distance;
             }
@@ -46,8 +46,8 @@ static int levenshtein(ReadOnlySpan<char> str1, ReadOnlySpan<char> str2)
     }
 
     // Create two rows, previous and current
-    Span<int> prev = stackalloc int[str1.Length + 1];
-    Span<int> curr = stackalloc int[str1.Length + 1];
+    var prev = new int[str1.Length + 1];
+    var curr = new int[str1.Length + 1];
 
     // initialize the previous row
     for (int i = 0; i <= str1.Length; i++)
@@ -63,16 +63,15 @@ static int levenshtein(ReadOnlySpan<char> str1, ReadOnlySpan<char> str2)
         {
             int cost = (str1[j - 1] == str2[i - 1]) ? 0 : 1;
             curr[j] = Math.Min(
-              prev[j] + 1,      // Deletion
-              Math.Min(curr[j - 1] + 1,    // Insertion
-              prev[j - 1] + cost)  // Substitution
+               Math.Min(prev[j] + 1,      // Deletion
+             curr[j - 1] + 1),    // Insertion
+              prev[j - 1] + cost  // Substitution
             );
         }
 
         // Swap spans
-        var temp = prev;
-        prev = curr;
-        curr = temp;
+        (prev, curr) = (curr, prev);
+
     }
     
     // Return final distance, stored in prev[m]
